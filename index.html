@@ -6,19 +6,18 @@
   <title>Yo Energi - AI能量语录</title>
   <style>
     body {
-  background: #fff;
-  color: #111;
-  font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;   /* 让内容垂直居中 */
-  min-height: 100vh;
-  margin: 0;
-}
+      background: #fff;
+      color: #111;
+      font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
     }
     #quote {
-      margin: 3.5rem auto 2rem auto;
+      margin: 18vh auto 4rem auto;
       max-width: 90vw;
       font-size: 1.3rem;
       text-align: center;
@@ -34,6 +33,10 @@
       height: 56px;
       margin: 0 auto;
       touch-action: manipulation;
+      position: fixed;
+      left: 50%;
+      bottom: 7vh;
+      transform: translateX(-50%);
     }
     #refreshIcon svg {
       width: 44px;
@@ -50,9 +53,63 @@
     </svg>
   </span>
   <script>
+    // 50条本地语录（中英日等，可自行扩展）
+    const localQuotes = [
+      '“生活就像骑自行车。要想保持平衡，你必须不断前进。” —— 爱因斯坦',
+      '“星星之火，可以燎原。” —— 《尚书》',
+      '“Stay hungry, stay foolish.” —— Steve Jobs',
+      '“不积跬步，无以至千里。” —— 荀子',
+      '“May the Force be with you.” —— 《星球大战》',
+      '“知之者不如好之者，好之者不如乐之者。” —— 孔子',
+      '“The only limit to our realization of tomorrow is our doubts of today.” —— F.D. Roosevelt',
+      '“路漫漫其修远兮，吾将上下而求索。” —— 屈原',
+      '“Carpe diem. Seize the day, boys.” —— 《死亡诗社》',
+      '“千里之行，始于足下。” —— 老子',
+      '“To be, or not to be, that is the question.” —— Shakespeare',
+      '“天行健，君子以自强不息。” —— 《周易》',
+      '“You must be the change you wish to see in the world.” —— Gandhi',
+      '“人生如逆旅，我亦是行人。” —— 苏轼',
+      '“Hakuna Matata.” —— 《狮子王》',
+      '“Do, or do not. There is no try.” —— Yoda',
+      '“读万卷书，行万里路。” —— 刘彝',
+      '“Keep calm and carry on.”',
+      '“己所不欲，勿施于人。” —— 孔子',
+      '“The best way to predict the future is to invent it.” —— Alan Kay',
+      '“成功是百分之一的天赋加百分之九十九的汗水。” —— 爱迪生',
+      '“Simplicity is the ultimate sophistication.” —— Leonardo da Vinci',
+      '“不忘初心，方得始终。”',
+      '“The only thing we have to fear is fear itself.” —— F.D. Roosevelt',
+      '“知足者常乐。”',
+      '“Success is not final, failure is not fatal: It is the courage to continue that counts.” —— Winston Churchill',
+      '“少壮不努力，老大徒伤悲。”',
+      '“Great minds think alike.”',
+      '“己欲立而立人，己欲达而达人。” —— 孔子',
+      '“The journey of a thousand miles begins with one step.” —— Laozi',
+      '“勇气是控制恐惧心理，而不是心里毫无恐惧。” —— 马克·吐温',
+      '“Happiness depends upon ourselves.” —— Aristotle',
+      '“失败乃成功之母。”',
+      '“The greatest glory in living lies not in never falling, but in rising every time we fall.” —— Nelson Mandela',
+      '“知人者智，自知者明。” —— 老子',
+      '“All our dreams can come true, if we have the courage to pursue them.” —— Walt Disney',
+      '“三人行，必有我师焉。” —— 孔子',
+      '“It always seems impossible until it’s done.” —— Nelson Mandela',
+      '“学而不思则罔，思而不学则殆。” —— 孔子',
+      '“The future belongs to those who believe in the beauty of their dreams.” —— Eleanor Roosevelt',
+      '“己所不欲，勿施于人。” —— 孔子',
+      '“Success is the sum of small efforts, repeated day in and day out.”',
+      '“知足常乐。”',
+      '“The mind is everything. What you think you become.” —— Buddha',
+      '“不经一事，不长一智。”',
+      '“Where there is a will, there is a way.”',
+      '“千里之行，始于足下。” —— 老子',
+      '“The best preparation for tomorrow is doing your best today.”',
+      '“有志者事竟成。”',
+      '“Action is the foundational key to all success.” —— Picasso',
+      '“不怕慢，就怕站。”',
+      '“Dream big and dare to fail.”',
+    ];
     let region = 'china';
     let lang = 'zh';
-    // 根据IP自动设置区域和语言，支持多国语言
     window.addEventListener('DOMContentLoaded', async () => {
       try {
         const res = await fetch('https://ipinfo.io/json');
@@ -91,45 +148,18 @@
         quoteDiv.textContent = '«Жизнь как езда на велосипеде. Чтобы сохранить равновесие, нужно двигаться.»';
       }
     }
-    async function fetchOpenAIQuote(region) {
-      try {
-        const response = await fetch(`/api/quote?region=${region}`);
-        if (!response.ok) return null;
-        const data = await response.json();
-        return data.quote;
-      } catch (e) {
-        return null;
-      }
-    }
+    // 本地语录随机切换
     const quoteDiv = document.getElementById('quote');
     const icon = document.getElementById('refreshIcon');
-    icon.addEventListener('click', async function() {
-      if (lang === 'zh') quoteDiv.textContent = '生成中...';
-      else if (lang === 'en') quoteDiv.textContent = 'Generating...';
-      else if (lang === 'ja') quoteDiv.textContent = '生成中...';
-      else if (lang === 'id') quoteDiv.textContent = 'Sedang membuat kutipan...';
-      else if (lang === 'fr') quoteDiv.textContent = 'Génération en cours...';
-      else if (lang === 'de') quoteDiv.textContent = 'Wird generiert...';
-      else if (lang === 'es') quoteDiv.textContent = 'Generando...';
-      else if (lang === 'ru') quoteDiv.textContent = 'Генерация...';
+    icon.addEventListener('click', function() {
+      let idx = Math.floor(Math.random() * localQuotes.length);
+      quoteDiv.textContent = localQuotes[idx];
       icon.style.transition = 'transform 0.4s';
       icon.style.transform = 'rotate(360deg)';
       setTimeout(() => {
         icon.style.transform = '';
       }, 400);
-      const result = await fetchOpenAIQuote(region);
-      if (result) quoteDiv.textContent = result;
-      else {
-        if (lang === 'zh') quoteDiv.textContent = '生成失败，请检查API Key或网络';
-        else if (lang === 'en') quoteDiv.textContent = 'Failed to generate. Please check your API Key or network.';
-        else if (lang === 'ja') quoteDiv.textContent = '生成に失敗しました。APIキーやネットワークをご確認ください。';
-        else if (lang === 'id') quoteDiv.textContent = 'Gagal membuat kutipan. Silakan periksa koneksi Anda.';
-        else if (lang === 'fr') quoteDiv.textContent = 'Échec de la génération. Veuillez vérifier votre connexion.';
-        else if (lang === 'de') quoteDiv.textContent = 'Generierung fehlgeschlagen. Bitte überprüfen Sie Ihre Verbindung.';
-        else if (lang === 'es') quoteDiv.textContent = 'No se pudo generar. Por favor, revise su conexión.';
-        else if (lang === 'ru') quoteDiv.textContent = 'Не удалось сгенерировать. Проверьте соединение.';
-      }
     });
   </script>
 </body>
-</html>
+</html> 
